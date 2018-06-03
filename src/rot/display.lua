@@ -17,7 +17,7 @@ local Display = ROT.Class:extend("Display")
 -- @tparam[opt=9] cw tile width
 -- @tparam[opt=16] ch tile height
 -- @return nil
-function Display:init(w, h, scale, image, cw, ch, flags, dfg, dbg)
+function Display:init(w, h, scale, image, cw, ch, dfg, dbg, root)
     self.__name = 'Display'
     self.widthInChars = w and w or 80
     self.heightInChars = h and h or 24
@@ -34,9 +34,14 @@ function Display:init(w, h, scale, image, cw, ch, flags, dfg, dbg)
     self.graphics = love.graphics
     love.window.setMode(self.charWidth*self.widthInChars, self.charHeight*self.heightInChars)
     self.drawQ = self.graphics.draw
+	self.isroot = root
 
-    self.defaultForegroundColor = dfg and dfg or { 235, 235, 235 }
-    self.defaultBackgroundColor = dbg and dbg or { 15, 15, 15 }
+    self.defaultForegroundColor = { 0.9215686274509803, 
+								    0.9215686274509803, 
+									0.9215686274509803 }
+    self.defaultBackgroundColor = { 0.058823529411764705
+								  , 0.058823529411764705
+								  , 0.058823529411764705 }
 
     self.graphics.setBackgroundColor(self.defaultBackgroundColor)
 
@@ -82,8 +87,11 @@ function Display:draw()
                self.oldBackgroundColors[x][y] ~= bg or
                self.oldForegroundColors[x][y] ~= fg then
 
-                self:_setColor(bg)
-                self.graphics.rectangle('fill', px, py, self.charWidth, self.charHeight)
+				if self.isroot == true then
+               		self:_setColor(bg)
+               		self.graphics.rectangle('fill', px, py, self.charWidth, self.charHeight)
+				end
+
                 if c ~= 32 and c ~= 255 then
                     local qd=self.glyphs[c]
                     self:_setColor(fg)
@@ -97,7 +105,7 @@ function Display:draw()
         end
     end
     self.graphics.setCanvas()
-    self.graphics.setColor(255,255,255,255)
+    self.graphics.setColor(1,1,1)
     self.graphics.draw(self.canvas)
 end
 

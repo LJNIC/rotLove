@@ -10,18 +10,20 @@ local Display = ROT.Class:extend("Display")
 -- @tparam[opt=80] int w Width of display in number of characters
 -- @tparam[opt=24] int h Height of display in number of characters
 -- @tparam[opt=1] float scale Window scale modifier applied to glyph dimensions
--- @tparam[opt=cp437.png] love image CP437 font image 
 -- @tparam[opt] table dfg Default foreground color as a table defined as {r,g,b,a}
 -- @tparam[opt] table dbg Default background color
 -- @tparam[opt=false] boolean fullOrFlags In Love 0.8.0: Use fullscreen In Love 0.9.0: a table defined for love.graphics.setMode
--- @tparam[opt=9] cw tile width
--- @tparam[opt=16] ch tile height
+-- @tparam[opt=cp437.png] love image CP437 font image 
+-- @tparam[opt=9] int imgcw Width of the image's characters 
+-- @tparam[opt=16] int imgch Height of the image's characters
 -- @return nil
-function Display:init(w, h, scale, image, cw, ch, dfg, dbg, root)
+function Display:init(w, h, scale, dfg, dbg, fullOrFlags, image, imgcw, imgch)
     self.__name = 'Display'
     self.widthInChars = w and w or 80
     self.heightInChars = h and h or 24
     self.scale = scale or 1
+    self.imageCharWidth = cw or 9
+    self.imageCharHeight = ch or 16
     self.charWidth = cw*self.scale
     self.charHeight = ch*self.scale
     self.glyphs = {}
@@ -32,16 +34,16 @@ function Display:init(w, h, scale, image, cw, ch, dfg, dbg, root)
     self.oldBackgroundColors = {{}}
     self.oldForegroundColors = {{}}
     self.graphics = love.graphics
-    love.window.setMode(self.charWidth*self.widthInChars, self.charHeight*self.heightInChars)
+    love.window.setMode(self.charWidth*self.widthInChars, self.charHeight*self.heightInChars, fullOrFlags)
     self.drawQ = self.graphics.draw
-	self.isroot = root
 
-    self.defaultForegroundColor = { 0.9215686274509803, 
-								    0.9215686274509803, 
-									0.9215686274509803 }
-    self.defaultBackgroundColor = { 0.058823529411764705
-								  , 0.058823529411764705
-								  , 0.058823529411764705 }
+    self.defaultForegroundColor = dfg or { 0.9215686274509803, 
+					   0.9215686274509803, 
+					   0.9215686274509803 }
+
+    self.defaultBackgroundColor = dbg or { 0.058823529411764705, 
+    					   0.058823529411764705, 
+					   0.058823529411764705 }
 
     self.graphics.setBackgroundColor(self.defaultBackgroundColor)
 
@@ -87,11 +89,8 @@ function Display:draw()
                self.oldBackgroundColors[x][y] ~= bg or
                self.oldForegroundColors[x][y] ~= fg then
 
-				if self.isroot == true then
-               		self:_setColor(bg)
-               		self.graphics.rectangle('fill', px, py, self.charWidth, self.charHeight)
-				end
-
+             	self:_setColor(bg)
+              	self.graphics.rectangle('fill', px, py, self.charWidth, self.charHeight)
                 if c ~= 32 and c ~= 255 then
                     local qd=self.glyphs[c]
                     self:_setColor(fg)
@@ -112,7 +111,7 @@ end
 --- Contains point.
 -- Returns true if point x,y can be drawn to display.
 function Display:contains(x, y)
-    return x>0 and x<=self:getWidth() and y>0 and y<=self:getHeight()
+    return x > 0 and x <= self:getWidth() and y > 0 and y <= self:getHeight()
 end
 
 function Display:getCharHeight() return self.charHeight end
